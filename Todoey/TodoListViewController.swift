@@ -14,7 +14,6 @@ class TodoListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
     }
 
     // MARK: - Table View Data Source
@@ -29,6 +28,16 @@ class TodoListViewController: UITableViewController {
         return items.count
     }
     
-
+    // MARK: - Table View Delegate
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let cell = tableView.cellForRow(at: indexPath)
+        if (cell?.accessoryType == .checkmark) {
+            cell?.accessoryType = .none
+        } else {
+            cell?.accessoryType = .checkmark
+        }
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
 }
 
