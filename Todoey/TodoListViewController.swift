@@ -10,11 +10,10 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
 
-    let items = ["Paint doors", "Fix screen", "Wash windows"]
+    var items = ["Paint doors", "Fix screen", "Wash windows"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
     }
 
     // MARK: - Table View Data Source
@@ -29,6 +28,35 @@ class TodoListViewController: UITableViewController {
         return items.count
     }
     
+    // MARK: - Table View Delegate
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let cell = tableView.cellForRow(at: indexPath)
+        if (cell?.accessoryType == .checkmark) {
+            cell?.accessoryType = .none
+        } else {
+            cell?.accessoryType = .checkmark
+        }
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    // MARK: - Add Todo
 
+    @IBAction func addPressed(_ sender: UIBarButtonItem) {
+        var itemField: UITextField?
+        let alert = UIAlertController(title: "Add Todoey Item", message: "", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Add Item", style: .default) { (action) in
+            if let item = itemField?.text {
+                self.items.append(item)
+                self.tableView.reloadData()
+            }
+        })
+        alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "New Todoey item"
+            itemField = alertTextField
+        }
+        present(alert, animated: true, completion: nil)
+    }
 }
 
