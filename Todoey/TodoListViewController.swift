@@ -9,11 +9,18 @@
 import UIKit
 
 class TodoListViewController: UITableViewController {
+    
+    let TODO_LIST_ITEMS = "TodoListItems"
 
-    var items = ["Paint doors", "Fix screen", "Wash windows"]
+    let defaults = UserDefaults.standard
+    
+    var items : [String] = [String]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        if let savedItems = defaults.array(forKey: TODO_LIST_ITEMS) as? [String] {
+            items = savedItems
+        }
     }
 
     // MARK: - Table View Data Source
@@ -48,6 +55,7 @@ class TodoListViewController: UITableViewController {
         alert.addAction(UIAlertAction(title: "Add Item", style: .default) { (action) in
             if let item = itemField?.text {
                 self.items.append(item)
+                self.defaults.set(self.items, forKey: self.TODO_LIST_ITEMS)
                 self.tableView.reloadData()
             }
         })
