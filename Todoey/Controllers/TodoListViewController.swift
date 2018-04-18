@@ -11,10 +11,7 @@ import CoreData
 
 class TodoListViewController: UITableViewController {
     
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("TodoeyItems.plist")
-    let encoder = PropertyListEncoder()
-    let decoder = PropertyListDecoder()
-    
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     var items : [TodoItem] = [TodoItem]()
 
     override func viewDidLoad() {
@@ -30,7 +27,7 @@ class TodoListViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath)
         let todoItem = items[indexPath.row]
         
-        cell.textLabel?.text = todoItem.itemName
+        cell.textLabel?.text = todoItem.name
         cell.accessoryType = todoItem.complete ? .checkmark : .none
         
         return cell
@@ -59,7 +56,8 @@ class TodoListViewController: UITableViewController {
         
         alert.addAction(UIAlertAction(title: "Add Item", style: .default) { (action) in
             if let itemName = itemField?.text {
-                let todoItem = TodoItem(itemName)
+                let todoItem = TodoItem(context: self.context)
+                todoItem.name = itemName
                 self.items.append(todoItem)
                 self.saveItems()
                 self.tableView.reloadData()
@@ -79,20 +77,18 @@ class TodoListViewController: UITableViewController {
     
     func saveItems() {
         do {
-            let data = try encoder.encode(items)
-            try data.write(to: dataFilePath!)
+            try context.save()
         } catch {
-            print("Error encoding items: \(error)")
+            print("Error persisting items: \(error)")
         }
     }
     
     func loadItems() {
+        let todoItemSearch = NSFetchRequest<TodoItem>(entityName: "TodoItem")
         do {
-            let data = try Data(contentsOf: dataFilePath!)
-            items = try decoder.decode([TodoItem].self, from: data)
+            items = try context.fetch(todoItemSearch)
         } catch {
-            print("Error decoding items: \(error)")
+            print("Error fetching items: \(error)")
         }
     }
 }
-
