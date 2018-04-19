@@ -74,7 +74,7 @@ class TodoListViewController: UITableViewController {
     }
     
     // MARK - Persistence
-    
+
     func saveItems() {
         do {
             try context.save()
@@ -84,7 +84,7 @@ class TodoListViewController: UITableViewController {
     }
     
     func loadItems() {
-        let todoItemSearch = NSFetchRequest<TodoItem>(entityName: "TodoItem")
+        let todoItemSearch : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
         do {
             items = try context.fetch(todoItemSearch)
         } catch {
