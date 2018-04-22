@@ -26,7 +26,21 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
     // MARK: - Search Bar Delegate
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        loadItems(searchText)
+        performSearch()
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.endEditing(false)
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = ""
+        searchBar.endEditing(false)
+        performSearch()
+    }
+
+    func performSearch() {
+        loadItems(searchField.text!)
         tableView.reloadData()
     }
 
@@ -93,14 +107,10 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
         }
     }
     
-    func loadItems() {
-        loadItems(nil)
-    }
-    
-    func loadItems(_ searchText: String?) {
+    func loadItems(_ searchText: String = "") {
         let todoItemSearch : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
-        if searchText != nil && searchText!.count > 0 {
-            todoItemSearch.predicate = NSPredicate(format: "name contains[cd] %@", searchText!)
+        if searchText.count > 0 {
+            todoItemSearch.predicate = NSPredicate(format: "name contains[cd] %@", searchText)
         }
         do {
             items = try context.fetch(todoItemSearch)
