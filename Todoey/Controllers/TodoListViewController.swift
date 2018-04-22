@@ -9,14 +9,24 @@
 import UIKit
 import CoreData
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: UITableViewController, UISearchBarDelegate{
     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     var items : [TodoItem] = [TodoItem]()
 
+    @IBOutlet weak var searchField: UISearchBar!
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        searchField.delegate = self
         loadItems()
+        tableView.reloadData()
+    }
+    
+    // MARK: - Search Bar Delegate
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        loadItems(searchText)
         tableView.reloadData()
     }
 
@@ -84,7 +94,14 @@ class TodoListViewController: UITableViewController {
     }
     
     func loadItems() {
+        loadItems(nil)
+    }
+    
+    func loadItems(_ searchText: String?) {
         let todoItemSearch : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
+        if searchText != nil && searchText!.count > 0 {
+            todoItemSearch.predicate = NSPredicate(format: "name contains[cd] %@", searchText!)
+        }
         do {
             items = try context.fetch(todoItemSearch)
         } catch {
