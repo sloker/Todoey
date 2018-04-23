@@ -16,9 +16,13 @@ class CategoryViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Leave as much room for category name as possible by only having the back arrow with no title to go back to categories
+        navigationItem.backBarButtonItem?.title = ""
         loadCategories()
         tableView.reloadData()
     }
+    
+    // MARK: - Add category
 
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         var categoryField: UITextField?
@@ -43,7 +47,7 @@ class CategoryViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    // MARK: - TableView Data Source
+    // MARK: - TableView data source
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
@@ -55,7 +59,7 @@ class CategoryViewController: UITableViewController {
         return categories.count
     }
     
-    // MARK: - TableView Delegate
+    // MARK: - TableView delegate
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "goToTodoItems", sender: self)

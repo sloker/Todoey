@@ -100,7 +100,7 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Todoey Categories" id="mA2-4U-6Qx">
-                        <barButtonItem key="backBarButtonItem" title="Categories" id="LzG-tJ-RDA"/>
+                        <barButtonItem key="backBarButtonItem" title=" " id="033-i0-HZf"/>
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="SmG-ES-aOP">
                             <color key="tintColor" red="1" green="1" blue="1" alpha="0.84999999999999998" colorSpace="custom" customColorSpace="displayP3"/>
                             <connections>
