@@ -114,7 +114,7 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
     
     func loadItems(_ searchText: String = "") {
         let todoItemSearch : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
-        let categoryPredicate = NSPredicate(format: "category.name MATCHES %@", category!.name!)
+        let categoryPredicate = NSPredicate(format: "category = %@", category!.objectID)
         var searchPredicate: NSPredicate? = nil
         if searchText.count > 0 {
             searchPredicate = NSPredicate(format: "name CONTAINS[cd] %@", searchText)
