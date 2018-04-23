@@ -12,15 +12,19 @@ import CoreData
 class TodoListViewController: UITableViewController, UISearchBarDelegate{
     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    var items : [TodoItem] = [TodoItem]()
+    var category: Category? {
+        didSet {
+            self.title = category?.name
+            loadItems()
+        }
+    }
+    var items: [TodoItem] = [TodoItem]()
 
     @IBOutlet weak var searchField: UISearchBar!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         searchField.delegate = self
-        loadItems()
-        tableView.reloadData()
     }
     
     // MARK: - Search Bar Delegate
@@ -82,6 +86,7 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
             if let itemName = itemField?.text {
                 let todoItem = TodoItem(context: self.context)
                 todoItem.name = itemName
+                todoItem.category = self.category
                 self.items.append(todoItem)
                 self.saveItems()
                 self.tableView.reloadData()
@@ -90,7 +95,7 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
         alert.addTextField { (alertTextField) in
-            alertTextField.placeholder = "Create new item"
+            alertTextField.placeholder = "Add new item"
             itemField = alertTextField
         }
         
@@ -109,8 +114,13 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
     
     func loadItems(_ searchText: String = "") {
         let todoItemSearch : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
+        let categoryPredicate = NSPredicate(format: "category.name MATCHES %@", category!.name!)
+        var searchPredicate: NSPredicate? = nil
         if searchText.count > 0 {
-            todoItemSearch.predicate = NSPredicate(format: "name contains[cd] %@", searchText)
+            searchPredicate = NSPredicate(format: "name CONTAINS[cd] %@", searchText)
+            todoItemSearch.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, searchPredicate!])
+        } else {
+            todoItemSearch.predicate = categoryPredicate
         }
         do {
             items = try context.fetch(todoItemSearch)
