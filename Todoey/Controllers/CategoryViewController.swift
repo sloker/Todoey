@@ -7,18 +7,21 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
     
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    var categories: [Category] = [Category]()
+    let realm = try! Realm()
+    
+    var categories: Results<Category>?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        loadCategories()
+        
         // Leave as much room for category name as possible by only having the back arrow with no title to go back to categories
         navigationItem.backBarButtonItem?.title = ""
-        loadCategories()
         tableView.reloadData()
     }
     
@@ -30,10 +33,9 @@ class CategoryViewController: UITableViewController {
         
         alert.addAction(UIAlertAction(title: "Add Category", style: .default) { (action) in
             if let categoryName = categoryField?.text {
-                let category = Category(context: self.context)
+                let category = Category()
                 category.name = categoryName
-                self.categories.append(category)
-                self.saveCategories()
+                self.save(category: category)
                 self.tableView.reloadData()
             }
         })
@@ -51,12 +53,12 @@ class CategoryViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-        cell.textLabel?.text = categories[indexPath.row].name
+        cell.textLabel?.text = categories![indexPath.row].name
         return cell
     }
         
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
+        return categories?.count ?? 0
     }
     
     // MARK: - TableView delegate
@@ -70,7 +72,7 @@ class CategoryViewController: UITableViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "goToTodoItems" {
             if let selectedRow = tableView.indexPathForSelectedRow {
-                let selectedCategory = categories[selectedRow.row]
+                let selectedCategory = categories![selectedRow.row]
                 (segue.destination as! TodoListViewController).category = selectedCategory
             }
         }
@@ -79,21 +81,18 @@ class CategoryViewController: UITableViewController {
 
     // MARK: - Persistence
     
-    func saveCategories() {
+    func save(category: Category) {
         do {
-            try context.save()
+            try realm.write {
+                realm.add(category)
+            }
         } catch {
             print("Error saving categories: \(error)")
         }
     }
     
     func loadCategories() {
-        let categoriesRequest: NSFetchRequest = Category.fetchRequest()
-        do {
-            categories = try context.fetch(categoriesRequest)
-        } catch {
-            print("Error loading categories: \(error)")
-        }
+        categories = realm.objects(Category.self)
     }
     
 }
