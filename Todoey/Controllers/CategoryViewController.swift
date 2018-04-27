@@ -94,5 +94,4 @@ class CategoryViewController: UITableViewController {
     func loadCategories() {
         categories = realm.objects(Category.self)
     }
-    
 }

@@ -86,7 +86,7 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
                 
                 let todoItem = TodoItem()
                 todoItem.name = itemName
-                
+
                 self.save(todoItem)
                 
                 let indexPath = IndexPath(row: self.items!.count - 1, section: 0)
@@ -132,5 +132,6 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
         } else {
             items = category!.items.filter(NSPredicate(value: true))
         }
+        items = items?.sorted(byKeyPath: "created", ascending: true)
     }
 }
