@@ -8,8 +8,9 @@
 
 import UIKit
 import RealmSwift
+import SwipeCellKit
 
-class TodoListViewController: UITableViewController, UISearchBarDelegate{
+class TodoListViewController: UITableViewController, UISearchBarDelegate {
     
     let realm = try! Realm()
     
@@ -54,9 +55,11 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath) as! SwipeTableViewCell
+
         let todoItem = items![indexPath.row]
         
+        cell.delegate = self
         cell.textLabel?.text = todoItem.name
         cell.accessoryType = todoItem.done ? .checkmark : .none
         
@@ -90,7 +93,7 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
                 self.save(todoItem)
                 
                 let indexPath = IndexPath(row: self.items!.count - 1, section: 0)
-                self.tableView.insertRows(at: [indexPath], with: .automatic)
+                self.tableView.insertRows(at: [indexPath], with: .fade)
                 self.tableView.scrollToRow(at: indexPath, at: .none, animated: true)
             }
         })
@@ -98,6 +101,7 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
         alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Add new item"
+            alertTextField.autocapitalizationType = .sentences
             itemField = alertTextField
         }
         
@@ -126,6 +130,16 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
         }
     }
     
+    func delete(item: TodoItem) {
+        do {
+            try realm.write {
+                realm.delete(item)
+            }
+        } catch {
+            print("Unable to delete item: \(error)")
+        }
+    }
+    
     func loadItems(_ searchText: String = "") {
         if searchText.count > 0 {
             items = category!.items.filter(NSPredicate(format: "name CONTAINS[cd] %@", searchText))
@@ -133,5 +147,29 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
             items = category!.items.filter(NSPredicate(value: true))
         }
         items = items?.sorted(byKeyPath: "created", ascending: true)
+    }
+}
+
+extension TodoListViewController: SwipeTableViewCellDelegate {
+    
+    // MARK: - Swipe Table View Cell Delegate
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
+        guard orientation == .right else { return nil }
+        
+        let deleteAction = SwipeAction(style: .destructive, title: nil) { action, indexPath in
+            self.delete(item: self.items![indexPath.row])
+        }
+        
+        // customize the action appearance
+        deleteAction.image = UIImage(named: "delete-icon")
+        
+        return [deleteAction]
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsOptionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> SwipeTableOptions {
+        var options = SwipeTableOptions()
+        options.expansionStyle = .destructive
+        return options
     }
 }
