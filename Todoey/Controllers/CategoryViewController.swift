@@ -9,6 +9,7 @@
 import UIKit
 import RealmSwift
 import SwipeCellKit
+import ChameleonFramework
 
 class CategoryViewController: UITableViewController {
     
@@ -23,6 +24,9 @@ class CategoryViewController: UITableViewController {
         
         // Leave as much room for category name as possible by only having the back arrow with no title to go back to categories
         navigationItem.backBarButtonItem?.title = ""
+        
+        tableView.separatorStyle = .none
+        tableView.rowHeight = 60
         tableView.reloadData()
     }
 
@@ -30,8 +34,10 @@ class CategoryViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! SwipeTableViewCell
+        let category = categories![indexPath.row]
         cell.delegate = self
-        cell.textLabel?.text = categories![indexPath.row].name
+        cell.textLabel?.text = category.name
+        cell.backgroundColor = UIColor(hexString: category.color)
         return cell
     }
         
@@ -67,6 +73,7 @@ class CategoryViewController: UITableViewController {
                 
                 let category = Category()
                 category.name = categoryName
+                category.color = RandomFlatColorWithShade(.light).hexValue()
                 
                 self.save(category: category)
                 
