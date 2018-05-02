@@ -7,18 +7,21 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
+import SwipeCellKit
 
-class TodoListViewController: UITableViewController, UISearchBarDelegate{
+class TodoListViewController: UITableViewController, UISearchBarDelegate {
     
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    let realm = try! Realm()
+    
     var category: Category? {
         didSet {
             self.title = category?.name
             loadItems()
         }
     }
-    var items: [TodoItem] = [TodoItem]()
+
+    var items: Results<TodoItem>?
 
     @IBOutlet weak var searchField: UISearchBar!
 
@@ -52,26 +55,25 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath)
-        let todoItem = items[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath) as! SwipeTableViewCell
+
+        let todoItem = items![indexPath.row]
         
+        cell.delegate = self
         cell.textLabel?.text = todoItem.name
-        cell.accessoryType = todoItem.complete ? .checkmark : .none
+        cell.accessoryType = todoItem.done ? .checkmark : .none
         
         return cell
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return items.count
+        return items?.count ?? 0
     }
     
     // MARK: - Table View Delegate
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        let todoItem = items[indexPath.row]
-        todoItem.complete = !todoItem.complete
-        saveItems()
+        toggle(items![indexPath.row])
         tableView.reloadRows(at: [indexPath], with: .fade)
     }
     
@@ -84,18 +86,22 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
         
         alert.addAction(UIAlertAction(title: "Add Item", style: .default) { (action) in
             if let itemName = itemField?.text {
-                let todoItem = TodoItem(context: self.context)
+                
+                let todoItem = TodoItem()
                 todoItem.name = itemName
-                todoItem.category = self.category
-                self.items.append(todoItem)
-                self.saveItems()
-                self.tableView.reloadData()
+
+                self.save(todoItem)
+                
+                let indexPath = IndexPath(row: self.items!.count - 1, section: 0)
+                self.tableView.insertRows(at: [indexPath], with: .fade)
+                self.tableView.scrollToRow(at: indexPath, at: .none, animated: true)
             }
         })
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Add new item"
+            alertTextField.autocapitalizationType = .sentences
             itemField = alertTextField
         }
         
@@ -104,28 +110,66 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
     
     // MARK - Persistence
 
-    func saveItems() {
+    func save(_ todoItem: TodoItem) {
         do {
-            try context.save()
+            try realm.write {
+                category!.items.append(todoItem)
+            }
         } catch {
             print("Error persisting items: \(error)")
         }
     }
     
-    func loadItems(_ searchText: String = "") {
-        let todoItemSearch : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
-        let categoryPredicate = NSPredicate(format: "category.name MATCHES %@", category!.name!)
-        var searchPredicate: NSPredicate? = nil
-        if searchText.count > 0 {
-            searchPredicate = NSPredicate(format: "name CONTAINS[cd] %@", searchText)
-            todoItemSearch.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, searchPredicate!])
-        } else {
-            todoItemSearch.predicate = categoryPredicate
-        }
+    func toggle(_ todoItem: TodoItem) {
         do {
-            items = try context.fetch(todoItemSearch)
+            try realm.write {
+                todoItem.done = !todoItem.done
+            }
         } catch {
-            print("Error fetching items: \(error)")
+            print("Unable to update item: \(error)")
         }
+    }
+    
+    func delete(item: TodoItem) {
+        do {
+            try realm.write {
+                realm.delete(item)
+            }
+        } catch {
+            print("Unable to delete item: \(error)")
+        }
+    }
+    
+    func loadItems(_ searchText: String = "") {
+        if searchText.count > 0 {
+            items = category!.items.filter(NSPredicate(format: "name CONTAINS[cd] %@", searchText))
+        } else {
+            items = category!.items.filter(NSPredicate(value: true))
+        }
+        items = items?.sorted(byKeyPath: "created", ascending: true)
+    }
+}
+
+extension TodoListViewController: SwipeTableViewCellDelegate {
+    
+    // MARK: - Swipe Table View Cell Delegate
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
+        guard orientation == .right else { return nil }
+        
+        let deleteAction = SwipeAction(style: .destructive, title: nil) { action, indexPath in
+            self.delete(item: self.items![indexPath.row])
+        }
+        
+        // customize the action appearance
+        deleteAction.image = UIImage(named: "delete-icon")
+        
+        return [deleteAction]
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsOptionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> SwipeTableOptions {
+        var options = SwipeTableOptions()
+        options.expansionStyle = .destructive
+        return options
     }
 }
