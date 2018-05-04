@@ -15,6 +15,8 @@ class CategoryViewController: UITableViewController {
     
     let realm = try! Realm()
     
+    let NAV_BAR_COLOR = UIColor(hexString: "#11A9FF")
+
     var categories: Results<Category>?
 
     override func viewDidLoad() {
@@ -24,6 +26,7 @@ class CategoryViewController: UITableViewController {
         
         // Leave as much room for category name as possible by only having the back arrow with no title to go back to categories
         navigationItem.backBarButtonItem?.title = ""
+        navigationController?.delegate = self
         
         tableView.separatorStyle = .none
         tableView.allowsMultipleSelection = false
@@ -160,5 +163,22 @@ extension CategoryViewController: SwipeTableViewCellDelegate {
         var options = SwipeTableOptions()
         options.expansionStyle = .destructive(automaticallyDelete: false, timing: .with)
         return options
+    }
+}
+
+// MARK: - NavigationController delegate
+
+extension CategoryViewController: UINavigationControllerDelegate {
+    
+    func navigationController(_ navigationController: UINavigationController,
+                              animationControllerFor operation: UINavigationControllerOperation,
+                              from fromVC: UIViewController,
+                              to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        
+        if toVC == self {
+            // reset nav bar color after coming back from a todo list
+            navigationController.navigationBar.barTintColor = NAV_BAR_COLOR
+        }
+        return nil
     }
 }
