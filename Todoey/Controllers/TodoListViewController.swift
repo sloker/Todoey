@@ -84,6 +84,7 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate {
         var itemField: UITextField?
         let alert = UIAlertController(title: "Add Todoey Item", message: "", preferredStyle: .alert)
         
+        alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
         alert.addAction(UIAlertAction(title: "Add Item", style: .default) { (action) in
             if let itemName = itemField?.text {
                 
@@ -98,7 +99,6 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate {
             }
         })
         
-        alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Add new item"
             alertTextField.autocapitalizationType = .sentences

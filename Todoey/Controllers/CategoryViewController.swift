@@ -26,6 +26,7 @@ class CategoryViewController: UITableViewController {
         navigationItem.backBarButtonItem?.title = ""
         
         tableView.separatorStyle = .none
+        tableView.allowsMultipleSelection = false
         tableView.rowHeight = 60
         tableView.reloadData()
     }
@@ -35,9 +36,10 @@ class CategoryViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! SwipeTableViewCell
         let category = categories![indexPath.row]
+        let cellColor = UIColor(hexString: category.color) ?? UIColor.white
         cell.delegate = self
         cell.textLabel?.text = category.name
-        cell.backgroundColor = UIColor(hexString: category.color)
+        cell.backgroundColor = cellColor
         return cell
     }
         
@@ -49,6 +51,7 @@ class CategoryViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "goToTodoItems", sender: self)
+        tableView.deselectRow(at: indexPath, animated: true)
     }
 
     // MARK: - Segue handling
@@ -68,6 +71,7 @@ class CategoryViewController: UITableViewController {
         var categoryField: UITextField?
         let alert = UIAlertController(title: "Add Todoey Category", message: "", preferredStyle: .alert)
         
+        alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
         alert.addAction(UIAlertAction(title: "Add Category", style: .default) { (action) in
             if let categoryName = categoryField?.text {
                 
@@ -83,7 +87,6 @@ class CategoryViewController: UITableViewController {
             }
         })
         
-        alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Add new category"
             alertTextField.autocapitalizationType = .sentences
