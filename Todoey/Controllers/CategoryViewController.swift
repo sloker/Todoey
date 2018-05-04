@@ -24,8 +24,6 @@ class CategoryViewController: UITableViewController {
         
         loadCategories()
         
-        // Leave as much room for category name as possible by only having the back arrow with no title to go back to categories
-        navigationItem.backBarButtonItem?.title = ""
         navigationController?.delegate = self
         
         tableView.separatorStyle = .none

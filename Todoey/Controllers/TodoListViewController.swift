@@ -32,7 +32,9 @@ class TodoListViewController: UITableViewController {
         
         // set nav bar title and color based on the category
         title = category?.name
-        self.navigationController?.navigationBar.barTintColor = UIColor(hexString: category!.color)
+        if let category = category {
+            self.navigationController?.navigationBar.barTintColor = UIColor(hexString: category.color)
+        }
 
         // set the search bar to match color scheme
         let baseColor = getBaseColor()
